@@ -47,6 +47,27 @@ object Main {
     //   1. Recolectar TODAS las entidades detectadas en todos los posts
     //   2. Contar por tipo
     //   3. Mostrar el resumen
-
+    // recorremos cada feed, y por cada uno, recorremos sus títulos acumulando las entidades detectadas
+    val allDetectedEntities: List[NamedEntity] = allPosts.flatMap { case (url, titles) =>
+      println(s"\nAnalizando posts de: $url\n")
+      
+      // por cada título individual, detectamos sus entidades
+      titles.flatMap { title =>
+        // uso Analyzer para detectar las entidades en este 'title' específico
+        val detected = Analyzer.detectEntities(title, dictionary)
+        
+        // uso Formatter para armar el bloque de texto de este post y lo imprimís directo a pantalla
+        val postReport = Formatters.formatNERResult(title, detected)
+        println(postReport)
+        println("-" * 50)
+        
+        // devuelvo las entidades detectadas en este post para que el flatMap las junte en 'allDetectedEntities'
+        detected
+      }
+    }
+    // estadisticas globales
+    val globalCounts = Analyzer.countByType(allDetectedEntities)
+    val statsReport = Formatters.formatEntityStats(globalCounts)
+    println("\n" + statsReport)
   }
 }
